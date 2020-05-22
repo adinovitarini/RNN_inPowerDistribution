@@ -1,0 +1,95 @@
+%%PreProcessing Data 
+%import data first
+clearvars -except trainingcurrentS2 testingdataS2
+clc
+train_data = trainingcurrentS2;
+test_data = testingdataS2;
+[m,n] = size(train_data);
+U = train_data(:,1);
+Y = train_data(:,2);
+UU = mean(U(1:m-1,1));
+YY = mean(Y(1:m-1,1));
+U_test = test_data(:,1);
+Y_test = test_data(:,2);
+%ARX Model 
+na = input('Total delay input : ');
+nb = input('Total delay output : ');
+%total input to MP 
+neu_inp = na + nb;
+neu_hid = input('Neuron hidden layer : ');
+alpa = input('Learning rate : ');
+neu_out = 1;
+% wih = [0.3111 0.9049;0.9234 0.9797;0.4302 0.4389;0.1848 0.1111];
+% woh = [0.2581;0.4087];
+wih = rand(neu_inp,neu_hid);
+woh = rand(neu_hid,neu_out);
+%Time Delay Block
+L = zeros(m,na+nb);
+for i = 1:m-1   
+    if i~=m-1
+        a = 1;
+        for j = 1:na 
+            L(i,j) = U(i,1);
+            if L(i,j) == 0
+                L(i,j)= UU;
+            end
+            if j == na 
+               L(i,j) = U(i+a,1);
+               if L(i,j) == 0
+                    L(i,j)= UU;
+               end
+               a = a+1;
+            end     
+        end
+        b = 1;
+            for j = na+1:na+nb 
+                L(i,j) = Y(i,1);
+                if L(i,j) == 0
+                    L(i,j)= YY;
+                end
+            if j == na+nb 
+               L(i,j) = Y(i+a,1);
+               if L(i,j) == 0
+                    L(i,j)= YY;
+                end
+               b = b+1;
+            end     
+            end
+    end
+end
+L(m-1:m,:)=[];
+%RNN 
+% wx = FirstSumPoint(wih,L);
+% sigma = tanh(wx);
+% yw = SecondSumPoint(woh,sigma);
+% Y_hat = tanh(yw);
+Y_hat = zeros(m-2,1);
+sigma = zeros(m-2,neu_hid);
+%normalize Y 
+Y_nor = Y(1:m-2,:);
+max_Ynor = max(Y_nor);
+min_Ynor = min(Y_nor);
+yw_normalize = ((2*Y_nor-2*min_Ynor)./(max_Ynor-min_Ynor))-1;
+Y = yw_normalize;
+e = abs(Y-Y_hat);
+[e_row,e_column] = size(e);
+for i = 1:e_row
+    if e(i) > 0.01       
+        delta_woh(i) = alpa*Y_hat(i)*e(i);
+        woh = UpdateWeightOutHid(woh,delta_woh(i),alpa);
+        delta_wih(i,:) = alpa*(1-tanh(diag(Y_hat(i)))^2)*woh*e(i);
+        wih = UpdateWeightHidInp(wih,delta_wih(i),alpa);
+        wx = FirstSumPoint(wih,L);
+        sigma = tanh(wx);
+        yw = SecondSumPoint(woh,sigma);
+        Y_hat = tanh(yw);
+    end
+     t(i) = i*0.01; %sampling time=0.01s
+end
+E = mse(Y,Y_hat)
+figure(1); 
+plot(t,Y,'b','LineWidth',2);hold on;plot(t,Y_hat,'r','LineWidth',2)
+legend('Real value','Estimate value')
+grid on
+xlabel('time (sec)');
+ylabel('kwh')
