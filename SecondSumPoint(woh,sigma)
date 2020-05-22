@@ -1,0 +1,15 @@
+function yw = SecondSumPoint(woh,sigma)
+    [m,n] = size(sigma);
+    [m1,n1] = size(woh); %n==m1
+    yw = zeros(m,n1);
+for i =1:m
+    for j = 1:m1
+        for k =1:n1
+            yw(i,k) = yw(i,k)+sigma(i,j)*woh(j,k);
+        end
+    end
+end
+max_yw = max(yw);
+min_yw = min(yw);
+yw_normalize = ((2*yw-2*min_yw)./(max_yw-min_yw))-1;
+yw = yw_normalize;
