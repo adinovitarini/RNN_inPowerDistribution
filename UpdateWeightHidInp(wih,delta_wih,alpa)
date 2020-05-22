@@ -1,0 +1,12 @@
+function wih_new = UpdateWeightHidInp(wih,delta_wih,alpa)
+delta_wih = delta_wih';
+[m,n] = size(wih);
+[m1,n1] = size(delta_wih); %n = m1
+for i =1:m
+    for j = 1:m1
+        for k =1:n1
+            wih(i,j) = wih(i,j)+alpa*delta_wih(j,k);
+        end
+    end
+end
+wih_new = wih;
