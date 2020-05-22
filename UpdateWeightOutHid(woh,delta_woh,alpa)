@@ -1,0 +1,11 @@
+function woh_new = UpdateWeightOutHid(woh,delta_woh,alpa)
+[m,n] = size(woh);
+[m1,n1] = size(delta_woh); %n = m1
+for i =1:m
+    for j = 1:m1
+        for k =1:n1
+            woh(i,j) = woh(i,j)+alpa*delta_woh(j,k);
+        end
+    end
+end
+woh_new = woh;
