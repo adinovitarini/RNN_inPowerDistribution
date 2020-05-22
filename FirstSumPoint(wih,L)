@@ -1,0 +1,15 @@
+function wx = FirstSumPoint(wih,L)
+    [m,n] = size(L);
+    [m1,n1] = size(wih); %n==m1
+    wx = zeros(m,n1);
+for i =1:m
+    for j = 1:m1
+        for k =1:n1
+            wx(i,k) = wx(i,k)+L(i,j)*wih(j,k);
+        end
+    end
+end
+max_wx = max(wx);
+min_wx = min(wx);
+wx_normalize = ((2*wx-2*min_wx)./(max_wx-min_wx))-1;
+wx = wx_normalize;
